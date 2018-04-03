@@ -6,7 +6,6 @@ use serial::prelude::*;
 
 enum Error {
     SerialError(serial::Error),
-    SerialNotConnected,
 }
 
 impl From<serial::Error> for Error {
@@ -15,23 +14,23 @@ impl From<serial::Error> for Error {
     }
 }
 
-trait Estim<'a, T> {
-    fn new(serial_port: &'a mut T) -> Self;
-    fn init_connection(&mut self, &str) -> Result<(), Error>;
+trait Estim<T> {
+    fn new(serial_port: T) -> Self;
+    fn configure_connection(&mut self) -> Result<(), Error>;
 }
 
-struct ET312B<'a, T: 'a + SerialPort> {
-    serial: &'a mut T,
+struct ET312B<T: SerialPort> {
+    serial: T,
 }
 
-impl<'a, T: SerialPort> Estim<'a, T> for ET312B<'a, T> {
-    fn new(serial_port: &'a mut T) -> Self {
+impl<T: SerialPort> Estim<T> for ET312B<T> {
+    fn new(serial_port: T) -> Self {
         Self {
             serial: serial_port,
         }
     }
 
-    fn init_connection(&mut self, serial_path: &str) -> Result<(), Error> {
+    fn configure_connection(&mut self) -> Result<(), Error> {
         self.serial.reconfigure(&|settings| {
             settings.set_baud_rate(serial::Baud19200)?;
             settings.set_char_size(serial::Bits8);

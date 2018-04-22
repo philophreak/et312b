@@ -100,4 +100,13 @@ impl<T: SerialPort> ET312B<T> {
 
         Ok(kex_response[1] ^ ENCRYPTION_KEY_XOR)
     }
+
+    pub fn read_address(&mut self, address: u16) -> Result<u8, errors::Error> {
+        self.send_packet(&[0x3c, (address & 0xff) as u8, (address >> 8) as u8])?;
+        let response = self.read_packet(2)?;
+        if response[0] != 0x22 {
+            return Err(errors::Error::UnexpectedValue(response[0]));
+        }
+        Ok(response[1])
+    }
 }

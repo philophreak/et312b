@@ -44,7 +44,7 @@ impl<T: SerialPort> ET312B<T> {
     /// not clear what will happen if we start writing bytes on a connection
     /// that was previously in use or corrupted.
     pub fn handshake(&mut self) -> Result<(), errors::Error> {
-        let mut buf: Vec<u8> = Vec::with_capacity(1);
+        let mut buf = [0u8; 1];
         self.serial.write_all(&[0x00])?;
         self.serial.read_exact(&mut buf)?;
 
@@ -73,8 +73,8 @@ impl<T: SerialPort> ET312B<T> {
     /// error if checksum validation fails. So, be sure to not include the
     /// checksum in the number of bytes you are reading.
     pub fn read_packet(&mut self, size: usize) -> Result<Vec<u8>, errors::Error> {
-        let mut buf: Vec<u8> = Vec::with_capacity(size);
-        let mut checksum: Vec<u8> = Vec::with_capacity(1);
+        let mut buf: Vec<u8> = vec![0; size];
+        let mut checksum = [0u8; 1];
         self.serial.read_exact(&mut buf)?;
         self.serial.read_exact(&mut checksum)?;
 

@@ -3,6 +3,7 @@ use std::io;
 
 extern crate serial;
 
+#[derive(Debug)]
 pub enum Error {
     SerialError(serial::Error),
     IOError(io::Error),

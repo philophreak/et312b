@@ -1,5 +1,4 @@
 use std::io::{Read, Write};
-use std::time::Duration;
 
 extern crate serial;
 use serial::prelude::*;
@@ -116,7 +115,7 @@ impl<T: Read + Write> ET312B<T> {
             return Err(errors::Error::MessageTooLong);
         }
 
-        let length_byte = (values.len() << 4 + 0x3d) as u8;
+        let length_byte = ((values.len() << 4) + 0x3d) as u8;
         let mut buf: [u8; 15] = [
             length_byte,
             (address & 0xff) as u8,
@@ -134,9 +133,7 @@ impl<T: Read + Write> ET312B<T> {
             0,
             0,
         ];
-        for i in 0..values.len() {
-            buf[3 + i] = values[i];
-        }
+        buf[3..(values.len() + 3)].clone_from_slice(&values);
 
         self.send_packet(&buf[0..3 + values.len()])?;
         let resp = self.read_packet(1)?;

@@ -13,6 +13,17 @@ pub struct ET312B<T: SerialPort> {
     encryption_key: u8,
 }
 
+pub fn open_serial_connection(path: &str) -> Result<serial::SystemPort, errors::Error> {
+    let mut port = serial::open(&path)?;
+    port.reconfigure(&|settings| {
+        settings.set_baud_rate(serial::Baud19200)?;
+        settings.set_char_size(serial::Bits8);
+        settings.set_parity(serial::ParityNone);
+        settings.set_stop_bits(serial::Stop1);
+        settings.set_flow_control(serial::FlowNone);
+    Ok(port)
+}
+
 impl<T: SerialPort> ET312B<T> {
     pub fn new(serial_port: T) -> Self {
         Self {

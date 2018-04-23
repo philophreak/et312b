@@ -1,3 +1,4 @@
+use std::io::{Read, Write};
 use std::time::Duration;
 
 extern crate serial;
@@ -8,11 +9,13 @@ mod utils;
 
 const ENCRYPTION_KEY_XOR: u8 = 0x55;
 
-pub struct ET312B<T: SerialPort> {
+pub struct ET312B<T: Read + Write> {
     serial: T,
     encryption_key: u8,
 }
 
+/// Configure the serial connection with the parameters expected by the
+/// ET312B, such as the serial baud rate and parity settings.
 pub fn open_serial_connection(path: &str) -> Result<serial::SystemPort, errors::Error> {
     let mut port = serial::open(&path)?;
     port.reconfigure(&|settings| {
@@ -21,30 +24,17 @@ pub fn open_serial_connection(path: &str) -> Result<serial::SystemPort, errors::
         settings.set_parity(serial::ParityNone);
         settings.set_stop_bits(serial::Stop1);
         settings.set_flow_control(serial::FlowNone);
+        Ok(())
+    })?;
     Ok(port)
 }
 
-impl<T: SerialPort> ET312B<T> {
+impl<T: Read + Write> ET312B<T> {
     pub fn new(serial_port: T) -> Self {
         Self {
             serial: serial_port,
             encryption_key: 0,
         }
-    }
-
-    /// Configure the serial connection with the parameters expected by the
-    /// ET312B.
-    pub fn configure_connection(&mut self) -> Result<(), errors::Error> {
-        self.serial.reconfigure(&|settings| {
-            settings.set_baud_rate(serial::Baud19200)?;
-            settings.set_char_size(serial::Bits8);
-            settings.set_parity(serial::ParityNone);
-            settings.set_stop_bits(serial::Stop1);
-            settings.set_flow_control(serial::FlowNone);
-            Ok(())
-        })?;
-        self.serial.set_timeout(Duration::from_millis(1000))?;
-        Ok(())
     }
 
     /// Perform a handshake with the ET312B device.

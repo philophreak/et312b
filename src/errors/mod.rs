@@ -9,6 +9,7 @@ pub enum Error {
     IOError(io::Error),
     ChecksumError,
     UnexpectedValue(u8),
+    MessageTooLong,
 }
 
 impl From<serial::Error> for Error {

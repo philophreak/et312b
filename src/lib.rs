@@ -109,4 +109,40 @@ impl<T: SerialPort> ET312B<T> {
         }
         Ok(response[1])
     }
+
+    pub fn write_address(&mut self, address: u16, values: &[u8]) -> Result<(), errors::Error> {
+        if values.len() > 12 {
+            return Err(errors::Error::MessageTooLong);
+        }
+
+        let length_byte = (values.len() << 4 + 0x3d) as u8;
+        let mut buf: [u8; 15] = [
+            length_byte,
+            (address & 0xff) as u8,
+            (address >> 8) as u8,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ];
+        for i in 0..values.len() {
+            buf[3 + i] = values[i];
+        }
+
+        self.send_packet(&buf[0..3 + values.len()])?;
+        let resp = self.read_packet(1)?;
+        if resp[0] != 0x06 {
+            return Err(errors::Error::UnexpectedValue(resp[0]));
+        }
+
+        Ok(())
+    }
 }
